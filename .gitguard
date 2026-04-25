@@ -1,0 +1,16 @@
+# .gitguard — patterns that must not appear in committed files.
+# One pattern per line. Lines starting with # are ignored.
+# Checked by pre-commit hook before each commit.
+#
+# Add patterns here when PII or secrets are discovered.
+# Keep patterns specific to avoid false positives.
+
+# API key patterns
+sk-ant-
+sk-proj-
+ANTHROPIC_API_KEY
+OPENAI_API_KEY
+
+# Generic secret patterns
+BEGIN RSA PRIVATE KEY
+BEGIN PRIVATE KEY
