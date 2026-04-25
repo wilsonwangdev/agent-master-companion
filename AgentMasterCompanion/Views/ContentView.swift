@@ -1,12 +1,14 @@
 import SwiftUI
 
 enum Tab: String, CaseIterable {
-    case explorer = "Explorer"
+    case explorer = "Project"
+    case userLevel = "User"
     case scratchPad = "Scratch Pad"
 
     var icon: String {
         switch self {
         case .explorer: return "folder.badge.gearshape"
+        case .userLevel: return "person.crop.circle"
         case .scratchPad: return "note.text"
         }
     }
@@ -36,30 +38,15 @@ struct ContentView: View {
             Group {
                 switch selectedTab {
                 case .explorer:
-                    ExplorerPlaceholderView()
+                    ExplorerView()
+                case .userLevel:
+                    UserLevelView()
                 case .scratchPad:
                     ScratchPadPlaceholderView()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-    }
-}
-
-struct ExplorerPlaceholderView: View {
-    var body: some View {
-        VStack {
-            Image(systemName: "folder.badge.gearshape")
-                .font(.largeTitle)
-                .foregroundColor(.secondary)
-            Text("Agent File Explorer")
-                .font(.headline)
-                .foregroundColor(.secondary)
-            Text("Coming in Phase 2")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
