@@ -43,4 +43,23 @@ class StorageService {
         projects.removeAll { $0.id == project.id }
         saveProjects(projects)
     }
+
+    // MARK: - Notes
+
+    private var notesFile: URL { appDir.appendingPathComponent("notes.json") }
+
+    func loadNotes() -> [Note] {
+        guard let data = try? Data(contentsOf: notesFile) else { return [] }
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return (try? decoder.decode([Note].self, from: data)) ?? []
+    }
+
+    func saveNotes(_ notes: [Note]) {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .prettyPrinted
+        encoder.dateEncodingStrategy = .iso8601
+        guard let data = try? encoder.encode(notes) else { return }
+        try? data.write(to: notesFile)
+    }
 }
