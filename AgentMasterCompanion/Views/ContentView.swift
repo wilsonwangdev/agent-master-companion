@@ -42,27 +42,10 @@ struct ContentView: View {
                 case .userLevel:
                     UserLevelView()
                 case .scratchPad:
-                    ScratchPadPlaceholderView()
+                    ScratchPadView()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-    }
-}
-
-struct ScratchPadPlaceholderView: View {
-    var body: some View {
-        VStack {
-            Image(systemName: "note.text")
-                .font(.largeTitle)
-                .foregroundColor(.secondary)
-            Text("Scratch Pad")
-                .font(.headline)
-                .foregroundColor(.secondary)
-            Text("Coming in Phase 3")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
