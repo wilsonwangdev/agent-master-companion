@@ -10,7 +10,11 @@ ARCHIVE_PATH="$BUILD_DIR/$SCHEME.xcarchive"
 EXPORT_PATH="$BUILD_DIR/export"
 DMG_STAGING="$BUILD_DIR/dmg-staging"
 
-VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" "$PROJECT_DIR/AgentMasterCompanion/Info.plist")
+VERSION=$(git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//')
+if [ -z "$VERSION" ]; then
+  echo "Error: no git tag found. Create a tag first: git tag v0.1.0"
+  exit 1
+fi
 DMG_NAME="AgentMasterCompanion-${VERSION}-universal.dmg"
 DMG_PATH="$BUILD_DIR/$DMG_NAME"
 
