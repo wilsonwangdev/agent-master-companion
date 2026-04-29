@@ -61,7 +61,7 @@ class FileScanner {
         let fm = FileManager.default
         let home = fm.homeDirectoryForCurrentUser.path
 
-        return AgentFileRegistry.safeUserLevelPaths.map { entry in
+        var results = AgentFileRegistry.safeUserLevelPaths.map { entry -> UserLevelResult in
             let expanded = entry.path.replacingOccurrences(of: "~", with: home)
             var isDir: ObjCBool = false
             let exists = fm.fileExists(atPath: expanded, isDirectory: &isDir)
@@ -73,6 +73,30 @@ class FileScanner {
                 description: entry.description
             )
         }
+
+        // Expand ~/.claude/projects/*/memory/*.md
+        let projectsDir = fm.homeDirectoryForCurrentUser
+            .appendingPathComponent(".claude/projects")
+        if let projectDirs = try? fm.contentsOfDirectory(at: projectsDir, includingPropertiesForKeys: nil) {
+            for dir in projectDirs.sorted(by: { $0.lastPathComponent < $1.lastPathComponent }) {
+                let memoryDir = dir.appendingPathComponent("memory")
+                guard let files = try? fm.contentsOfDirectory(at: memoryDir, includingPropertiesForKeys: nil) else { continue }
+                let mdFiles = files.filter { $0.pathExtension == "md" }
+                if mdFiles.isEmpty { continue }
+                let projectName = dir.lastPathComponent
+                for file in mdFiles.sorted(by: { $0.lastPathComponent < $1.lastPathComponent }) {
+                    results.append(UserLevelResult(
+                        tool: .claudeCode,
+                        path: "~/.claude/projects/\(projectName)/memory/\(file.lastPathComponent)",
+                        expandedPath: file.path,
+                        exists: true,
+                        description: "Memory: \(projectName)"
+                    ))
+                }
+            }
+        }
+
+        return results
     }
 
     // MARK: - Glob resolution
