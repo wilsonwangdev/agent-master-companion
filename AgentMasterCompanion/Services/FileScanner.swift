@@ -23,6 +23,24 @@ class FileScanner {
             }
         }
 
+        // Claude Code stores memory in ~/.claude/projects/{encoded-path}/memory/
+        let encodedPath = "-" + root.path.dropFirst().replacingOccurrences(of: "/", with: "-")
+        let userMemoryDir = fm.homeDirectoryForCurrentUser
+            .appendingPathComponent(".claude/projects")
+            .appendingPathComponent(encodedPath)
+            .appendingPathComponent("memory")
+        if let memoryFiles = try? fm.contentsOfDirectory(at: userMemoryDir, includingPropertiesForKeys: nil) {
+            for url in memoryFiles where url.pathExtension == "md" {
+                found.append(AgentFile(
+                    tool: .claudeCode,
+                    path: url,
+                    relativePath: "~/.claude/projects/\(encodedPath)/memory/\(url.lastPathComponent)",
+                    layer: .runtime,
+                    description: "Auto-accumulated context"
+                ))
+            }
+        }
+
         let grouped = Dictionary(grouping: found) { $0.tool }
         return AgentTool.allCases.compactMap { tool in
             guard let files = grouped[tool], !files.isEmpty else { return nil }
