@@ -10,29 +10,31 @@ trigger: any build script, xcodebuild, or distribution-related change
 
 ## Rule
 
-When building macOS apps for distribution (DMG, ZIP, GitHub Releases), always use ad-hoc signing as the minimum baseline. Never completely disable code signing.
+When building macOS apps for distribution, always use ad-hoc signing as the minimum baseline. Never completely disable code signing.
 
 ## Signing Levels
 
 | Level | Identity | User Experience | Cost |
 |-------|----------|----------------|------|
-| Notarized | Developer ID + notarization | Opens directly | $99/yr |
-| Developer ID | Developer ID certificate | "Unverified developer", can open | $99/yr |
-| Ad-hoc | `CODE_SIGN_IDENTITY="-"` | "Cannot verify", Open Anyway in Settings | Free |
-| None | `CODE_SIGNING_ALLOWED=NO` | "Move to Trash", no direct open option | - |
+| Notarized | Developer ID + notarization | Opens directly, no warning | $99/yr |
+| Developer ID | Developer ID certificate | "Unverified developer" warning, can open | $99/yr |
+| Ad-hoc | `CODE_SIGN_IDENTITY="-"` | Gatekeeper warning, open via System Settings | Free |
+| None | `CODE_SIGNING_ALLOWED=NO` | Gatekeeper warning, same flow as ad-hoc on Sequoia | - |
+
+## Reality Check (macOS Sequoia+)
+
+On macOS Sequoia and later, ad-hoc signing and unsigned apps produce **the same user experience**: Gatekeeper blocks the app, user must go to System Settings → Privacy & Security → "Open Anyway". The historical distinction (ad-hoc = softer warning, unsigned = "Move to Trash" only) no longer holds.
+
+Ad-hoc signing is still the correct default because:
+- It guarantees binary integrity (tamper detection)
+- It is required for Apple Silicon hardened runtime in the future
+- It costs nothing and has no downside
+
+But it does **not** improve the first-launch experience compared to unsigned builds. The only way to eliminate the Gatekeeper warning is Developer ID signing + notarization ($99/yr Apple Developer Program).
 
 ## Correct Build Flags
 
 ```bash
 # Ad-hoc signing (v0 minimum)
 CODE_SIGN_IDENTITY="-" CODE_SIGNING_REQUIRED=YES CODE_SIGNING_ALLOWED=YES
-
-# WRONG — produces unsigned binary, worst Gatekeeper experience
-CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
 ```
-
-## Why
-
-Agents generating build scripts tend to copy `CODE_SIGNING_ALLOWED=NO` from search results. This produces completely unsigned binaries that macOS Gatekeeper treats as maximum threat — users see "Move to Trash" with no option to open. Ad-hoc signing (`-`) is free, requires no Apple Developer account, and downgrades the warning to "Open Anyway" in System Settings.
-
-This distinction cost us a release rebuild (v0.1.0 → v0.1.1).
