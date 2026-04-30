@@ -6,10 +6,11 @@ struct ProjectExplorerView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header
-            HStack {
+            HStack(spacing: 8) {
                 Button(action: { vm.closeProject() }) {
                     Image(systemName: "chevron.left")
+                        .frame(minWidth: 28, minHeight: 28)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
 
@@ -17,21 +18,24 @@ struct ProjectExplorerView: View {
                     Text(project.name).font(.headline).lineLimit(1)
                     Text(project.path)
                         .font(.caption2)
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(.secondary)
                         .lineLimit(1)
                         .truncationMode(.middle)
+                        .help(project.path)
                 }
 
                 Spacer()
 
                 Button(action: { vm.scan() }) {
                     Image(systemName: "arrow.clockwise")
+                        .frame(minWidth: 28, minHeight: 28)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .disabled(vm.isScanning)
             }
             .padding(.horizontal, 12)
-            .padding(.vertical, 8)
+            .padding(.vertical, 4)
 
             Divider()
 
@@ -76,11 +80,15 @@ struct AgentFileTreeView: View {
                                     Text(file.relativePath)
                                         .font(.body)
                                         .lineLimit(1)
+                                        .truncationMode(.middle)
+                                        .help(file.relativePath)
                                     Text(file.description)
                                         .font(.caption2)
-                                        .foregroundStyle(.tertiary)
+                                        .foregroundStyle(.secondary)
                                 }
                             }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
                     }

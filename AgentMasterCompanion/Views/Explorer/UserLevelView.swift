@@ -16,11 +16,13 @@ struct UserLevelView: View {
                     Spacer()
                     Button(action: { results = scanner.scanUserLevel() }) {
                         Image(systemName: "arrow.clockwise")
+                            .frame(minWidth: 28, minHeight: 28)
+                            .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                 }
                 .padding(.horizontal, 12)
-                .padding(.vertical, 8)
+                .padding(.vertical, 4)
 
                 Divider()
 
@@ -104,6 +106,8 @@ struct UserLevelView: View {
                     .font(.body)
                     .lineLimit(1)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
@@ -115,10 +119,12 @@ struct UserLevelView: View {
                 .frame(width: 16)
             VStack(alignment: .leading, spacing: 1) {
                 Text(item.path).font(.body).lineLimit(1).truncationMode(.middle)
+                    .help(item.path)
                 Text(item.description)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
