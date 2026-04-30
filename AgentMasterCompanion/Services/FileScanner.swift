@@ -54,6 +54,7 @@ class FileScanner {
         let expandedPath: String
         let exists: Bool
         let description: String
+        let groupName: String?
         var id: String { expandedPath }
     }
 
@@ -70,7 +71,8 @@ class FileScanner {
                 path: entry.path,
                 expandedPath: expanded,
                 exists: exists,
-                description: entry.description
+                description: entry.description,
+                groupName: nil
             )
         }
 
@@ -90,7 +92,8 @@ class FileScanner {
                         path: "~/.claude/projects/\(projectName)/memory/\(file.lastPathComponent)",
                         expandedPath: file.path,
                         exists: true,
-                        description: "Memory: \(projectName)"
+                        description: "Memory file",
+                        groupName: projectName
                     ))
                 }
             }

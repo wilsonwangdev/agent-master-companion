@@ -6,10 +6,10 @@ struct UserLevelView: View {
     private let scanner = FileScanner()
 
     var body: some View {
-        VStack(spacing: 0) {
-            if let file = selectedFile {
-                FileViewerView(file: file, onBack: { selectedFile = nil })
-            } else {
+        if let file = selectedFile {
+            FileViewerView(file: file, onBack: { selectedFile = nil })
+        } else {
+            VStack(spacing: 0) {
                 HStack {
                     Text("User-Level Agent Config")
                         .font(.headline)
@@ -24,40 +24,88 @@ struct UserLevelView: View {
 
                 Divider()
 
-                List {
-                    let grouped = Dictionary(grouping: results) { $0.tool }
-                    ForEach(AgentTool.allCases, id: \.self) { tool in
-                        if let items = grouped[tool], !items.isEmpty {
-                            Section {
-                                ForEach(items) { item in
-                                    if item.exists && item.expandedPath.hasSuffix(".md") {
-                                        Button(action: {
-                                            selectedFile = AgentFile(
-                                                tool: item.tool,
-                                                path: URL(fileURLWithPath: item.expandedPath),
-                                                relativePath: item.path,
-                                                layer: .user,
-                                                description: item.description
-                                            )
-                                        }) {
-                                            userLevelRow(item: item)
-                                        }
-                                        .buttonStyle(.plain)
-                                    } else {
-                                        userLevelRow(item: item)
-                                    }
+                userLevelList
+            }
+            .onAppear { results = scanner.scanUserLevel() }
+        }
+    }
+
+    @ViewBuilder
+    private var userLevelList: some View {
+        let globalItems = results.filter { $0.groupName == nil }
+        let memoryItems = results.filter { $0.groupName != nil }
+        let projectGroups = Dictionary(grouping: memoryItems) { $0.groupName! }
+        let sortedProjects = projectGroups.keys.sorted()
+
+        if results.isEmpty {
+            VStack(spacing: 8) {
+                Spacer()
+                Image(systemName: "person.crop.circle.badge.questionmark")
+                    .font(.largeTitle)
+                    .foregroundStyle(.secondary)
+                Text("No user-level agent files found")
+                    .foregroundStyle(.secondary)
+                Spacer()
+            }
+            .frame(maxWidth: .infinity)
+        } else {
+            List {
+                if !globalItems.isEmpty {
+                    Section("Global Config") {
+                        ForEach(globalItems) { item in
+                            userLevelRow(item: item)
+                        }
+                    }
+                }
+
+                if !sortedProjects.isEmpty {
+                    Section("Claude Code Memory") {
+                        ForEach(sortedProjects, id: \.self) { project in
+                            DisclosureGroup {
+                                ForEach(projectGroups[project]!) { item in
+                                    fileButton(item: item)
                                 }
-                            } header: {
-                                Label(tool.rawValue, systemImage: tool.icon)
-                                    .font(.subheadline.weight(.semibold))
+                            } label: {
+                                Label(readableProjectName(project), systemImage: "folder")
+                                    .font(.body)
                             }
                         }
                     }
                 }
-                .listStyle(.sidebar)
+            }
+            .listStyle(.sidebar)
+        }
+    }
+
+    private func readableProjectName(_ encoded: String) -> String {
+        let path = encoded.replacingOccurrences(of: "-", with: "/")
+        let components = path.split(separator: "/")
+        if components.count >= 2 {
+            return components.suffix(2).joined(separator: "/")
+        }
+        return String(components.last ?? Substring(encoded))
+    }
+
+    private func fileButton(item: FileScanner.UserLevelResult) -> some View {
+        Button(action: {
+            selectedFile = AgentFile(
+                tool: item.tool,
+                path: URL(fileURLWithPath: item.expandedPath),
+                relativePath: item.path,
+                layer: .user,
+                description: item.description
+            )
+        }) {
+            HStack {
+                Image(systemName: "doc.text")
+                    .foregroundStyle(.secondary)
+                    .frame(width: 16)
+                Text(URL(fileURLWithPath: item.expandedPath).lastPathComponent)
+                    .font(.body)
+                    .lineLimit(1)
             }
         }
-        .onAppear { results = scanner.scanUserLevel() }
+        .buttonStyle(.plain)
     }
 
     private func userLevelRow(item: FileScanner.UserLevelResult) -> some View {
@@ -69,7 +117,7 @@ struct UserLevelView: View {
                 Text(item.path).font(.body).lineLimit(1).truncationMode(.middle)
                 Text(item.description)
                     .font(.caption2)
-                    .foregroundStyle(.tertiary)
+                    .foregroundStyle(.secondary)
             }
         }
     }
