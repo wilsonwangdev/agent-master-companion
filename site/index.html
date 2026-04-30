@@ -259,6 +259,12 @@
     <p>Open source. Offline. No telemetry.</p>
   </footer>
 
+  <!-- Vercel Web Analytics — no-op on non-Vercel hosts (GitHub Pages) -->
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
+
 </body>
 </html>
 
