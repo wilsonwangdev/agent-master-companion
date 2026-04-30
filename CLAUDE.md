@@ -99,6 +99,8 @@ See `rules/file-access-boundary.md` for the full rule.
 - Atomic commits with prefixes: `feat:`, `fix:`, `infra:`, `ui:`, `build:`, `docs:`
 - Message explains why, not what
 - One concern per branch and per PR
+- Before starting work: `git fetch -p && ./scripts/clean-branches.sh`
+- After PR merge: run `./scripts/clean-branches.sh` to delete stale local branches
 - See `rules/git-workflow.md` for full rules
 
 ## Commit Conventions
