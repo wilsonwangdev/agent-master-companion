@@ -19,17 +19,26 @@ struct ContentView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 0) {
+            HStack(spacing: 6) {
                 ForEach(Tab.allCases, id: \.self) { tab in
                     Button(action: { selectedTab = tab }) {
                         Label(tab.rawValue, systemImage: tab.icon)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 8)
+                            .frame(maxWidth: .infinity, minHeight: 32)
+                            .padding(.horizontal, 8)
+                            .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .background(selectedTab == tab ? Color.accentColor.opacity(0.15) : Color.clear)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(selectedTab == tab ? Color.accentColor.opacity(0.15) : Color.clear)
+                    )
                 }
             }
+            .padding(6)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.secondary.opacity(0.08))
+            )
             .padding(.horizontal, 8)
             .padding(.top, 8)
 
