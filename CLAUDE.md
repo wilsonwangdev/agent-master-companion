@@ -66,6 +66,21 @@ Notes:
 - Do not manually bump `CFBundleShortVersionString` for releases
 - Verify every release by downloading the DMG and checking the app's About panel shows the tag version
 
+## Site Development
+
+```bash
+# Local preview
+./scripts/dev-site.sh          # http://localhost:3001
+
+# Site is a single static HTML file — edit site/index.html directly
+```
+
+Deployment (automatic on push to main when `site/` changes):
+- **Vercel** (primary): analytics-enabled, import repo and enable Analytics in dashboard
+- **GitHub Pages** (backup): deployed via `.github/workflows/pages.yml`
+
+Vercel Analytics script is embedded in index.html. It is a no-op on non-Vercel hosts (GitHub Pages), so the same HTML works on both.
+
 ## Safety — Product Boundary
 
 This app operates on a strict whitelist of non-sensitive agent files only:

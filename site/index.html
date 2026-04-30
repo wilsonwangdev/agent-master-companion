@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent Master Companion — macOS Menubar Utility for Agent Files</title>
+  <meta name="description" content="Browse and manage agent instruction files (CLAUDE.md, .cursorrules, AGENTS.md, and more) across all your projects. Offline, open source, zero telemetry.">
+  <meta property="og:title" content="Agent Master Companion">
+  <meta property="og:description" content="A macOS menubar utility for browsing agent-related instruction, context, and rule files.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://wilsonwangdev.github.io/agent-master-companion/">
+  <style>
+    :root {
+      --bg: #fafafa;
+      --fg: #1a1a1a;
+      --muted: #666;
+      --accent: #2563eb;
+      --accent-soft: #dbeafe;
+      --card-bg: #fff;
+      --card-border: #e5e7eb;
+      --section-bg: #f3f4f6;
+      --radius: 12px;
+      --max-w: 720px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #111;
+        --fg: #e5e5e5;
+        --muted: #999;
+        --accent: #60a5fa;
+        --accent-soft: #1e3a5f;
+        --card-bg: #1a1a1a;
+        --card-border: #333;
+        --section-bg: #161616;
+      }
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 80px 24px 60px;
+    }
+    .hero h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+    }
+    .hero .tagline {
+      font-size: 1.15rem;
+      color: var(--muted);
+      max-width: 520px;
+      margin: 0 auto 32px;
+    }
+    .hero .actions {
+      display: flex;
+      gap: 32px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 14px 32px;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 500;
+      transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.85; text-decoration: none; }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+    .btn-secondary {
+      background: var(--card-bg);
+      color: var(--fg);
+      border: 1px solid var(--card-border);
+    }
+    .version {
+      display: inline-block;
+      margin-top: 16px;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    /* Features */
+    .features {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 0 24px 60px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 560px) {
+      .features { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    .card h3 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .card p {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    /* Sections */
+    .section {
+      background: var(--section-bg);
+      padding: 48px 24px;
+    }
+    .section-inner {
+      max-width: var(--max-w);
+      margin: 0 auto;
+    }
+    .section h2 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    .section p, .section li {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    .section ul {
+      list-style: none;
+      padding: 0;
+    }
+    .section li {
+      padding: 4px 0;
+    }
+    .section li::before {
+      content: "✓ ";
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .install-steps {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-top: 16px;
+    }
+    .install-steps ol {
+      padding-left: 20px;
+    }
+    .install-steps li {
+      padding: 4px 0;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    .install-steps li::before { content: none; }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 40px 24px;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    footer a { color: var(--muted); }
+    footer a:hover { color: var(--accent); }
+    .footer-links {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <section class="hero">
+    <h1>Agent Master Companion</h1>
+    <p class="tagline">A lightweight macOS menubar utility for browsing and managing agent instruction files across all your projects.</p>
+    <div class="actions">
+      <a href="https://github.com/wilsonwangdev/agent-master-companion/releases/latest" class="btn btn-primary">Download DMG</a>
+      <a href="https://github.com/wilsonwangdev/agent-master-companion" class="btn btn-secondary">View on GitHub</a>
+    </div>
+    <span class="version">macOS 13+ &middot; Universal Binary (Apple Silicon + Intel)</span>
+  </section>
+
+  <section class="features">
+    <div class="card">
+      <h3>Agent File Explorer</h3>
+      <p>Scan any project folder and discover agent files — CLAUDE.md, .cursorrules, AGENTS.md, .windsurfrules, and 12+ tools — grouped by tool in a tree view.</p>
+    </div>
+    <div class="card">
+      <h3>User-Level Config</h3>
+      <p>See all your global agent configurations at a glance. Claude Code memory files grouped by project with full read/edit access.</p>
+    </div>
+    <div class="card">
+      <h3>Scratch Pad</h3>
+      <p>Jot down ideas while waiting for agent responses. Notes auto-save and persist across sessions.</p>
+    </div>
+    <div class="card">
+      <h3>Prompt Composer</h3>
+      <p>Select multiple notes, combine them, and copy to clipboard as a single prompt. Useful for assembling context from scattered thoughts.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-inner">
+      <h2>Privacy First</h2>
+      <ul>
+        <li>Fully offline — zero network requests</li>
+        <li>No telemetry, no analytics, no data collection</li>
+        <li>Only reads instruction and context files — never touches credentials or config files</li>
+        <li>File content is never cached; only paths and metadata are stored</li>
+        <li>Open source — audit every line of code</li>
+      </ul>
+    </div>
+  </section>
+  <section class="section" style="background: var(--bg);">
+    <div class="section-inner">
+      <h2>Installation</h2>
+      <div class="install-steps">
+        <ol>
+          <li>Download the DMG from <a href="https://github.com/wilsonwangdev/agent-master-companion/releases/latest">GitHub Releases</a></li>
+          <li>Open the DMG and drag the app to Applications</li>
+          <li>Double-click to launch — macOS will show a security warning</li>
+          <li>Open <strong>System Settings → Privacy & Security</strong>, scroll down, and click <strong>"Open Anyway"</strong></li>
+          <li>The app appears in your menubar (not in the Dock)</li>
+        </ol>
+      </div>
+      <p style="margin-top: 12px; font-size: 0.85rem; color: var(--muted);">
+        The security warning appears because the app is not yet signed with an Apple Developer certificate. This is planned for v1.0. The app is fully open source and can be built from source.
+      </p>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-links">
+      <a href="https://github.com/wilsonwangdev/agent-master-companion">GitHub</a>
+      <a href="https://github.com/wilsonwangdev/agent-master-companion/issues">Feedback</a>
+      <a href="https://github.com/wilsonwangdev/agent-master-companion/blob/main/CONTRIBUTING.md">Contributing</a>
+      <a href="https://github.com/wilsonwangdev/agent-master-companion/blob/main/ROADMAP.md">Roadmap</a>
+    </div>
+    <p>Open source. Offline. No telemetry.</p>
+  </footer>
+
+  <!-- Vercel Web Analytics — no-op on non-Vercel hosts (GitHub Pages) -->
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
+
+</body>
+</html>
+
+
