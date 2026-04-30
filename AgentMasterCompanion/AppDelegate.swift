@@ -44,9 +44,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let menu = NSMenu()
         menu.addItem(NSMenuItem(title: "About", action: #selector(showAbout), keyEquivalent: ""))
         menu.addItem(.separator())
-        let quitItem = NSMenuItem(title: "Quit", action: #selector(quit), keyEquivalent: "q")
-        quitItem.keyEquivalentModifierMask = [.command]
-        menu.addItem(quitItem)
+        menu.addItem(NSMenuItem(title: "Quit", action: #selector(quit), keyEquivalent: ""))
 
         statusItem.menu = menu
         statusItem.button?.performClick(nil)
@@ -55,7 +53,33 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func showAbout() {
         NSApp.activate(ignoringOtherApps: true)
-        NSApp.orderFrontStandardAboutPanel(nil)
+        NSApp.orderFrontStandardAboutPanel(options: [
+            .credits: aboutCredits()
+        ])
+    }
+
+    private func aboutCredits() -> NSAttributedString {
+        let html = """
+        <div style=\"font-family: -apple-system; font-size: 12px; text-align: center;\">
+          <p>A macOS menubar utility for browsing agent-related instruction, context, and rule files.</p>
+          <p><a href=\"https://github.com/wilsonwangdev/agent-master-companion\">Project Home</a></p>
+          <p><a href=\"https://github.com/wilsonwangdev/agent-master-companion/issues\">Report Issues / Feedback</a></p>
+        </div>
+        """
+
+        guard let data = html.data(using: .utf8),
+              let attributed = try? NSAttributedString(
+                data: data,
+                options: [
+                    .documentType: NSAttributedString.DocumentType.html,
+                    .characterEncoding: String.Encoding.utf8.rawValue,
+                ],
+                documentAttributes: nil
+              ) else {
+            return NSAttributedString(string: "Project: https://github.com/wilsonwangdev/agent-master-companion\nIssues: https://github.com/wilsonwangdev/agent-master-companion/issues")
+        }
+
+        return attributed
     }
 
     @objc private func quit() {
