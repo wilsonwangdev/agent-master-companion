@@ -10,9 +10,11 @@ struct FileViewerView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
+            HStack(spacing: 8) {
                 Button(action: onBack) {
                     Image(systemName: "chevron.left")
+                        .frame(minWidth: 28, minHeight: 28)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
 
@@ -24,22 +26,22 @@ struct FileViewerView: View {
                         Text(file.layer.rawValue)
                     }
                     .font(.caption2)
-                    .foregroundStyle(.tertiary)
+                    .foregroundStyle(.secondary)
                 }
 
                 Spacer()
 
                 if loadError == nil {
-                    Toggle(isOn: $isEditing) {
-                        Image(systemName: isEditing ? "pencil.circle.fill" : "pencil.circle")
+                    Button(action: { isEditing.toggle() }) {
+                        Text(isEditing ? "Done" : "Edit")
+                            .frame(minWidth: 40, minHeight: 24)
                     }
-                    .toggleStyle(.button)
-                    .buttonStyle(.plain)
-                    .help(isEditing ? "Switch to read-only" : "Enable editing")
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
                 }
             }
             .padding(.horizontal, 12)
-            .padding(.vertical, 8)
+            .padding(.vertical, 4)
 
             Divider()
 

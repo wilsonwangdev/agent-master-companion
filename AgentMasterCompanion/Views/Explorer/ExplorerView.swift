@@ -92,6 +92,7 @@ struct ProjectPickerView: View {
                     .font(.headline)
             }
             .buttonStyle(.borderedProminent)
+            .controlSize(.large)
 
             if !vm.recentProjects.isEmpty {
                 Divider().padding(.horizontal, 40)
@@ -109,10 +110,13 @@ struct ProjectPickerView: View {
                                     Text(project.name).font(.body)
                                     Text(project.path)
                                         .font(.caption2)
-                                        .foregroundStyle(.tertiary)
+                                        .foregroundStyle(.secondary)
                                         .lineLimit(1)
                                         .truncationMode(.middle)
+                                        .help(project.path)
                                 }
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .contentShape(Rectangle())
                             }
                             .buttonStyle(.plain)
                             .contextMenu {
