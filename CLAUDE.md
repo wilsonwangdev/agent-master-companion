@@ -42,6 +42,30 @@ xcodebuild -project AgentMasterCompanion.xcodeproj -scheme AgentMasterCompanion 
 # Open AgentMasterCompanion.xcodeproj, Cmd+R
 ```
 
+## Release Workflow
+
+```bash
+# 1. Ensure all release PRs are merged to main
+git checkout main && git pull
+
+# 2. Create release tag on main
+git tag v0.2.0
+git push origin v0.2.0
+
+# 3. GitHub Actions will automatically:
+#    - build universal app (arm64 + x86_64)
+#    - inject version from git tag into built Info.plist
+#    - package DMG
+#    - generate SHA-256 checksum
+#    - publish GitHub Release
+```
+
+Notes:
+- Source `Info.plist` uses placeholder version `0.0.0-dev`
+- Real version is injected at build time from the latest git tag
+- Do not manually bump `CFBundleShortVersionString` for releases
+- Verify every release by downloading the DMG and checking the app's About panel shows the tag version
+
 ## Safety — Product Boundary
 
 This app operates on a strict whitelist of non-sensitive agent files only:

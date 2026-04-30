@@ -155,6 +155,7 @@
 				A3000002 /* Sources */,
 				A3000001 /* Frameworks */,
 				A3000003 /* Resources */,
+				A3000004 /* Inject Version from Git Tag */,
 			);
 			buildRules = (
 			);
@@ -203,6 +204,24 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		A3000004 /* Inject Version from Git Tag */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Inject Version from Git Tag";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/bash;
+			shellScript = "VERSION=$(git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//')\nif [ -z \"$VERSION\" ]; then VERSION=\"0.0.0-dev\"; fi\nBUILD=$(git rev-list HEAD --count 2>/dev/null || echo \"0\")\n/usr/libexec/PlistBuddy -c \"Set :CFBundleShortVersionString $VERSION\" \"$TARGET_BUILD_DIR/$INFOPLIST_PATH\"\n/usr/libexec/PlistBuddy -c \"Set :CFBundleVersion $BUILD\" \"$TARGET_BUILD_DIR/$INFOPLIST_PATH\"\necho \"Injected version: $VERSION ($BUILD)\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		A3000002 /* Sources */ = {
