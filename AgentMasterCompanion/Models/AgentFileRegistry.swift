@@ -63,7 +63,6 @@ struct AgentFileRegistry {
         [
             (.claudeCode, "~/.claude/settings.json", "Global settings", true),
             (.claudeCode, "~/.claude/keybindings.json", "Keybindings", true),
-            (.claudeCode, "~/.claude/projects/", "Per-project memory", false),
             (.codex, "~/.config/codex/config.toml", "Global config", true),
             (.aider, "~/.aider.conf.yaml", "Global config", true),
             (.aider, "~/.aiderignore", "Global ignore", false),
@@ -75,4 +74,35 @@ struct AgentFileRegistry {
     static var safeUserLevelPaths: [(tool: AgentTool, path: String, description: String, isSensitive: Bool)] {
         userLevelPaths.filter { !$0.isSensitive }
     }
+
+    static let userDynamicDirectories: [UserDynamicDirectory] = [
+        UserDynamicDirectory(
+            tool: .claudeCode,
+            basePath: "~/.claude/projects",
+            structure: .projectGrouped(subPath: "memory", pattern: "*.md"),
+            sectionTitle: "Claude Code Memory",
+            itemDescription: "Memory file",
+            icon: "doc.text",
+            extractTitleFromContent: false
+        ),
+        UserDynamicDirectory(
+            tool: .claudeCode,
+            basePath: "~/.claude/plans",
+            structure: .flat(pattern: "*.md"),
+            sectionTitle: "Claude Code Plans",
+            itemDescription: "Session plan",
+            icon: "list.bullet.clipboard",
+            extractTitleFromContent: true
+        ),
+    ]
+
+    static let projectLinkedUserDirectories: [ProjectLinkedUserDirectory] = [
+        ProjectLinkedUserDirectory(
+            tool: .claudeCode,
+            basePathTemplate: "~/.claude/projects/{project}/memory",
+            encoding: .dashSeparated,
+            pattern: "*.md",
+            description: "Auto-accumulated context"
+        ),
+    ]
 }
