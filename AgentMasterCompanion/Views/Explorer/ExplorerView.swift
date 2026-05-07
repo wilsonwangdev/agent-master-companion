@@ -72,11 +72,19 @@ struct ExplorerView: View {
     @StateObject private var vm = ExplorerViewModel()
 
     var body: some View {
-        if let project = vm.currentProject {
-            ProjectExplorerView(vm: vm, project: project)
-        } else {
-            ProjectPickerView(vm: vm)
+        ZStack {
+            if let project = vm.currentProject {
+                ProjectExplorerView(vm: vm, project: project)
+                    .transition(.asymmetric(
+                        insertion: .opacity.combined(with: .offset(x: 20)),
+                        removal: .opacity.combined(with: .offset(x: 20))
+                    ))
+            } else {
+                ProjectPickerView(vm: vm)
+                    .transition(.opacity)
+            }
         }
+        .animation(AnimationToken.viewSwitch, value: vm.currentProject?.id)
     }
 }
 
@@ -105,7 +113,9 @@ struct ProjectPickerView: View {
 
                     List {
                         ForEach(vm.recentProjects) { project in
-                            Button(action: { vm.openRecent(project) }) {
+                            HoverableRow(onTap: {
+                                withAnimation(AnimationToken.viewSwitch) { vm.openRecent(project) }
+                            }) {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(project.name).font(.body)
                                     Text(project.path)
@@ -115,10 +125,7 @@ struct ProjectPickerView: View {
                                         .truncationMode(.middle)
                                         .help(project.path)
                                 }
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .contentShape(Rectangle())
                             }
-                            .buttonStyle(.plain)
                             .contextMenu {
                                 Button("Remove from Recent", role: .destructive) {
                                     vm.removeRecent(project)

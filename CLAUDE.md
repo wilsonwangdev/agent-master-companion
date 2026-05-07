@@ -16,6 +16,7 @@ The primary developer has zero macOS client development experience. Agent should
 - macOS only, menubar-only app (no Dock icon)
 - Non-sandboxed (needs filesystem access to dotfiles)
 - Xcode project (not Swift Package Manager CLI)
+- Deployment target: **macOS 14.0 (Sonoma) or newer**. Follow Apple's currently-supported releases (latest two majors); bump the target when Apple drops support for an older version. Don't add `@available` guards for older macOS — rely on the minimum.
 
 ## Project Structure
 
