@@ -48,3 +48,55 @@ enum AgentTool: String, CaseIterable, Identifiable, Codable {
         }
     }
 }
+
+enum UserDirectoryStructure {
+    case flat(pattern: String)
+    case projectGrouped(subPath: String, pattern: String)
+}
+
+struct UserDynamicDirectory: Identifiable {
+    let tool: AgentTool
+    let basePath: String
+    let structure: UserDirectoryStructure
+    let sectionTitle: String
+    let itemDescription: String
+    let icon: String
+    let extractTitleFromContent: Bool
+
+    var id: String { "\(tool.rawValue):\(basePath)" }
+}
+
+enum ProjectPathEncoding {
+    case dashSeparated
+}
+
+struct ProjectLinkedUserDirectory: Identifiable {
+    let tool: AgentTool
+    let basePathTemplate: String
+    let encoding: ProjectPathEncoding
+    let pattern: String
+    let description: String
+
+    var id: String { "\(tool.rawValue):\(basePathTemplate)" }
+
+    func resolvedPath(forProject projectPath: String, home: String) -> String {
+        let encoded: String
+        switch encoding {
+        case .dashSeparated:
+            encoded = "-" + projectPath.dropFirst().replacingOccurrences(of: "/", with: "-")
+        }
+        return basePathTemplate
+            .replacingOccurrences(of: "~", with: home)
+            .replacingOccurrences(of: "{project}", with: encoded)
+    }
+
+    func displayPath(forProject projectPath: String, fileName: String) -> String {
+        let encoded: String
+        switch encoding {
+        case .dashSeparated:
+            encoded = "-" + projectPath.dropFirst().replacingOccurrences(of: "/", with: "-")
+        }
+        let base = basePathTemplate.replacingOccurrences(of: "{project}", with: encoded)
+        return "\(base)/\(fileName)"
+    }
+}

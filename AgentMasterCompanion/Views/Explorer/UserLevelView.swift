@@ -2,6 +2,7 @@ import SwiftUI
 
 struct UserLevelView: View {
     @State private var results: [FileScanner.UserLevelResult] = []
+    @State private var dynamicGroups: [FileScanner.DynamicDirectoryGroup] = []
     @State private var selectedFile: AgentFile?
     private let scanner = FileScanner()
 
@@ -14,7 +15,7 @@ struct UserLevelView: View {
                     Text("User-Level Agent Config")
                         .font(.headline)
                     Spacer()
-                    Button(action: { results = scanner.scanUserLevel() }) {
+                    Button(action: refresh) {
                         Image(systemName: "arrow.clockwise")
                             .frame(minWidth: 28, minHeight: 28)
                             .contentShape(Rectangle())
@@ -28,18 +29,18 @@ struct UserLevelView: View {
 
                 userLevelList
             }
-            .onAppear { results = scanner.scanUserLevel() }
+            .onAppear(perform: refresh)
         }
+    }
+
+    private func refresh() {
+        results = scanner.scanUserLevel()
+        dynamicGroups = scanner.scanUserDynamicDirectories()
     }
 
     @ViewBuilder
     private var userLevelList: some View {
-        let globalItems = results.filter { $0.groupName == nil }
-        let memoryItems = results.filter { $0.groupName != nil }
-        let projectGroups = Dictionary(grouping: memoryItems) { $0.groupName! }
-        let sortedProjects = projectGroups.keys.sorted()
-
-        if results.isEmpty {
+        if results.isEmpty && dynamicGroups.isEmpty {
             VStack(spacing: 8) {
                 Spacer()
                 Image(systemName: "person.crop.circle.badge.questionmark")
@@ -52,31 +53,103 @@ struct UserLevelView: View {
             .frame(maxWidth: .infinity)
         } else {
             List {
-                if !globalItems.isEmpty {
+                if !results.isEmpty {
                     Section("Global Config") {
-                        ForEach(globalItems) { item in
+                        ForEach(results) { item in
                             userLevelRow(item: item)
                         }
                     }
                 }
 
-                if !sortedProjects.isEmpty {
-                    Section("Claude Code Memory") {
-                        ForEach(sortedProjects, id: \.self) { project in
-                            DisclosureGroup {
-                                ForEach(projectGroups[project]!) { item in
-                                    fileButton(item: item)
-                                }
-                            } label: {
-                                Label(readableProjectName(project), systemImage: "folder")
-                                    .font(.body)
-                            }
-                        }
-                    }
+                ForEach(dynamicGroups) { group in
+                    dynamicSection(group: group)
                 }
             }
             .listStyle(.sidebar)
         }
+    }
+
+    @ViewBuilder
+    private func dynamicSection(group: FileScanner.DynamicDirectoryGroup) -> some View {
+        let grouped = Dictionary(grouping: group.items) { $0.groupName ?? "" }
+        let hasSubgroups = grouped.keys.contains { !$0.isEmpty }
+
+        Section {
+            if hasSubgroups {
+                let keys = grouped.keys.filter { !$0.isEmpty }.sorted()
+                ForEach(keys, id: \.self) { key in
+                    DisclosureGroup {
+                        ForEach(grouped[key] ?? []) { item in
+                            itemButton(item: item)
+                        }
+                    } label: {
+                        Label(readableProjectName(key), systemImage: "folder")
+                            .font(.body)
+                    }
+                }
+            } else {
+                ForEach(group.items) { item in
+                    itemButton(item: item)
+                }
+            }
+        } header: {
+            HStack(spacing: 4) {
+                Text(group.directory.sectionTitle)
+                Text("(\(group.items.count))")
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private static let relativeFormatter: RelativeDateTimeFormatter = {
+        let f = RelativeDateTimeFormatter()
+        f.unitsStyle = .short
+        return f
+    }()
+
+    private func itemButton(item: FileScanner.DynamicDirectoryItem) -> some View {
+        Button(action: {
+            selectedFile = AgentFile(
+                tool: item.directory.tool,
+                path: item.path,
+                relativePath: relativePath(for: item),
+                layer: .user,
+                description: item.directory.itemDescription
+            )
+        }) {
+            HStack(alignment: .top, spacing: 8) {
+                Image(systemName: item.directory.icon)
+                    .foregroundStyle(.secondary)
+                    .frame(width: 16)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(item.displayTitle)
+                        .font(.body)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                    HStack(spacing: 4) {
+                        if let subtitle = item.subtitle {
+                            Text(subtitle).lineLimit(1).truncationMode(.middle)
+                            Text("·")
+                        }
+                        Text(Self.relativeFormatter.localizedString(for: item.modifiedAt, relativeTo: Date()))
+                    }
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+            .help("\(item.displayTitle)\n\(item.fileName)")
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func relativePath(for item: FileScanner.DynamicDirectoryItem) -> String {
+        let base = item.directory.basePath
+        if let group = item.groupName {
+            return "\(base)/\(group)/\(item.fileName)"
+        }
+        return "\(base)/\(item.fileName)"
     }
 
     private func readableProjectName(_ encoded: String) -> String {
@@ -86,30 +159,6 @@ struct UserLevelView: View {
             return components.suffix(2).joined(separator: "/")
         }
         return String(components.last ?? Substring(encoded))
-    }
-
-    private func fileButton(item: FileScanner.UserLevelResult) -> some View {
-        Button(action: {
-            selectedFile = AgentFile(
-                tool: item.tool,
-                path: URL(fileURLWithPath: item.expandedPath),
-                relativePath: item.path,
-                layer: .user,
-                description: item.description
-            )
-        }) {
-            HStack {
-                Image(systemName: "doc.text")
-                    .foregroundStyle(.secondary)
-                    .frame(width: 16)
-                Text(URL(fileURLWithPath: item.expandedPath).lastPathComponent)
-                    .font(.body)
-                    .lineLimit(1)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
     }
 
     private func userLevelRow(item: FileScanner.UserLevelResult) -> some View {
