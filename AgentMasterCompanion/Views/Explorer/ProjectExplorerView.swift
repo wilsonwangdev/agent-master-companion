@@ -7,12 +7,9 @@ struct ProjectExplorerView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 8) {
-                Button(action: { vm.closeProject() }) {
-                    Image(systemName: "chevron.left")
-                        .frame(minWidth: 28, minHeight: 28)
-                        .contentShape(Rectangle())
+                HoverIconButton("chevron.left", help: "Back to projects") {
+                    withAnimation(AnimationToken.viewSwitch) { vm.closeProject() }
                 }
-                .buttonStyle(.plain)
 
                 VStack(alignment: .leading, spacing: 1) {
                     Text(project.name).font(.headline).lineLimit(1)
@@ -26,37 +23,44 @@ struct ProjectExplorerView: View {
 
                 Spacer()
 
-                Button(action: { vm.scan() }) {
-                    Image(systemName: "arrow.clockwise")
-                        .frame(minWidth: 28, minHeight: 28)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .disabled(vm.isScanning)
+                RefreshButton { vm.scan() }
+                    .disabled(vm.isScanning)
+                    .opacity(vm.isScanning ? 0.4 : 1)
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 4)
 
             Divider()
 
-            if vm.isScanning {
-                Spacer()
-                ProgressView("Scanning...")
-                Spacer()
-            } else if vm.toolGroups.isEmpty {
-                Spacer()
-                VStack(spacing: 8) {
-                    Image(systemName: "doc.questionmark")
-                        .font(.largeTitle)
-                        .foregroundStyle(.secondary)
-                    Text("No agent files found")
-                        .foregroundStyle(.secondary)
+            ZStack {
+                if vm.isScanning {
+                    VStack { Spacer(); ProgressView("Scanning..."); Spacer() }
+                        .transition(.opacity)
+                } else if vm.toolGroups.isEmpty {
+                    VStack(spacing: 8) {
+                        Spacer()
+                        Image(systemName: "doc.questionmark")
+                            .font(.largeTitle)
+                            .foregroundStyle(.secondary)
+                        Text("No agent files found")
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                    }
+                    .transition(.opacity)
+                } else if let file = vm.selectedFile {
+                    FileViewerView(file: file, onBack: {
+                        withAnimation(AnimationToken.viewSwitch) { vm.selectedFile = nil }
+                    })
+                    .transition(.asymmetric(
+                        insertion: .opacity.combined(with: .offset(x: 20)),
+                        removal: .opacity.combined(with: .offset(x: 20))
+                    ))
+                } else {
+                    AgentFileTreeView(groups: vm.toolGroups, onSelect: { file in
+                        withAnimation(AnimationToken.viewSwitch) { vm.selectedFile = file }
+                    })
+                    .transition(.opacity)
                 }
-                Spacer()
-            } else if let file = vm.selectedFile {
-                FileViewerView(file: file, onBack: { vm.selectedFile = nil })
-            } else {
-                AgentFileTreeView(groups: vm.toolGroups, onSelect: { vm.selectedFile = $0 })
             }
         }
     }
@@ -66,6 +70,8 @@ struct AgentFileTreeView: View {
     let groups: [AgentToolGroup]
     let onSelect: (AgentFile) -> Void
 
+    @State private var expanded: Set<String> = []
+
     var body: some View {
         List {
             ForEach(groups) { group in
@@ -73,6 +79,11 @@ struct AgentFileTreeView: View {
             }
         }
         .listStyle(.sidebar)
+        .onAppear {
+            if expanded.isEmpty {
+                expanded = Set(groups.flatMap { g in Self.groupByParent(g.files).dirs.map { "\(g.tool.rawValue)::\($0.dir)" } })
+            }
+        }
     }
 
     @ViewBuilder
@@ -85,12 +96,25 @@ struct AgentFileTreeView: View {
             }
             ForEach(dirGroups, id: \.dir) { entry in
                 let sharedDesc = Self.commonValue(entry.files.map(\.description))
-                DisclosureGroup {
+                let key = "\(group.tool.rawValue)::\(entry.dir)"
+                ExpandableFolderRow(
+                    dir: entry.dir,
+                    sharedDesc: sharedDesc,
+                    expanded: Binding(
+                        get: { expanded.contains(key) },
+                        set: { isOn in
+                            if isOn { expanded.insert(key) } else { expanded.remove(key) }
+                        }
+                    )
+                )
+                if expanded.contains(key) {
                     ForEach(entry.files) { file in
-                        fileRow(file: file, showDescription: sharedDesc == nil)
+                        fileRow(file: file, showDescription: sharedDesc == nil, indented: true)
+                            .transition(.asymmetric(
+                                insertion: .opacity.combined(with: .move(edge: .top)),
+                                removal: .opacity.combined(with: .move(edge: .top))
+                            ))
                     }
-                } label: {
-                    folderLabel(dir: entry.dir, sharedDesc: sharedDesc)
                 }
             }
         } header: {
@@ -99,32 +123,15 @@ struct AgentFileTreeView: View {
         }
     }
 
-    private func folderLabel(dir: String, sharedDesc: String?) -> some View {
-        HStack(alignment: .center, spacing: 6) {
-            Image(systemName: "folder")
-                .foregroundStyle(.secondary)
-                .frame(width: 16)
-            VStack(alignment: .leading, spacing: 1) {
-                Text(dir)
-                    .font(.body)
-                    .lineLimit(1)
-                    .truncationMode(.tail)
-                    .help(dir)
-                if let sharedDesc {
-                    Text(sharedDesc)
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                }
-            }
-        }
-    }
-
-    private func fileRow(file: AgentFile, showDescription: Bool) -> some View {
-        Button(action: { onSelect(file) }) {
+    private func fileRow(file: AgentFile, showDescription: Bool, indented: Bool = false) -> some View {
+        HoverableRow(onTap: { onSelect(file) }) {
             HStack(spacing: 8) {
+                if indented {
+                    Spacer().frame(width: 18)
+                }
                 Image(systemName: "doc.text")
                     .foregroundStyle(.secondary)
-                    .frame(width: 16)
+                    .frame(width: 16, alignment: .center)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(file.name)
                         .font(.body)
@@ -138,18 +145,15 @@ struct AgentFileTreeView: View {
                     }
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
     }
 
-    private struct DirEntry {
+    struct DirEntry {
         let dir: String
         let files: [AgentFile]
     }
 
-    private static func groupByParent(_ files: [AgentFile]) -> (root: [AgentFile], dirs: [DirEntry]) {
+    static func groupByParent(_ files: [AgentFile]) -> (root: [AgentFile], dirs: [DirEntry]) {
         var root: [AgentFile] = []
         var buckets: [String: [AgentFile]] = [:]
         var order: [String] = []

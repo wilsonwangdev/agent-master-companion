@@ -4,38 +4,45 @@ struct UserLevelView: View {
     @State private var results: [FileScanner.UserLevelResult] = []
     @State private var dynamicGroups: [FileScanner.DynamicDirectoryGroup] = []
     @State private var selectedFile: AgentFile?
+    @State private var expanded: Set<String> = []
     private let scanner = FileScanner()
 
     var body: some View {
-        if let file = selectedFile {
-            FileViewerView(file: file, onBack: { selectedFile = nil })
-        } else {
-            VStack(spacing: 0) {
-                HStack {
-                    Text("User-Level Agent Config")
-                        .font(.headline)
-                    Spacer()
-                    Button(action: refresh) {
-                        Image(systemName: "arrow.clockwise")
-                            .frame(minWidth: 28, minHeight: 28)
-                            .contentShape(Rectangle())
+        ZStack {
+            if let file = selectedFile {
+                FileViewerView(file: file, onBack: {
+                    withAnimation(AnimationToken.viewSwitch) { selectedFile = nil }
+                })
+                .transition(.asymmetric(
+                    insertion: .opacity.combined(with: .offset(x: 20)),
+                    removal: .opacity.combined(with: .offset(x: 20))
+                ))
+            } else {
+                VStack(spacing: 0) {
+                    HStack {
+                        Text("User-Level Agent Config")
+                            .font(.headline)
+                        Spacer()
+                        RefreshButton(action: refresh)
                     }
-                    .buttonStyle(.plain)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 4)
+
+                    Divider()
+
+                    userLevelList
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 4)
-
-                Divider()
-
-                userLevelList
+                .transition(.opacity)
             }
-            .onAppear(perform: refresh)
         }
+        .onAppear(perform: refresh)
     }
 
     private func refresh() {
-        results = scanner.scanUserLevel()
-        dynamicGroups = scanner.scanUserDynamicDirectories()
+        withAnimation(AnimationToken.snappy) {
+            results = scanner.scanUserLevel()
+            dynamicGroups = scanner.scanUserDynamicDirectories()
+        }
     }
 
     @ViewBuilder
@@ -78,13 +85,25 @@ struct UserLevelView: View {
             if hasSubgroups {
                 let keys = grouped.keys.filter { !$0.isEmpty }.sorted()
                 ForEach(keys, id: \.self) { key in
-                    DisclosureGroup {
+                    let compoundKey = "\(group.id)::\(key)"
+                    ExpandableFolderRow(
+                        dir: readableProjectName(key),
+                        sharedDesc: nil,
+                        expanded: Binding(
+                            get: { expanded.contains(compoundKey) },
+                            set: { isOn in
+                                if isOn { expanded.insert(compoundKey) } else { expanded.remove(compoundKey) }
+                            }
+                        )
+                    )
+                    if expanded.contains(compoundKey) {
                         ForEach(grouped[key] ?? []) { item in
-                            itemButton(item: item)
+                            itemButton(item: item, indented: true)
+                                .transition(.asymmetric(
+                                    insertion: .opacity.combined(with: .move(edge: .top)),
+                                    removal: .opacity.combined(with: .move(edge: .top))
+                                ))
                         }
-                    } label: {
-                        Label(readableProjectName(key), systemImage: "folder")
-                            .font(.body)
                     }
                 }
             } else {
@@ -101,26 +120,25 @@ struct UserLevelView: View {
         }
     }
 
-    private static let relativeFormatter: RelativeDateTimeFormatter = {
-        let f = RelativeDateTimeFormatter()
-        f.unitsStyle = .short
-        return f
-    }()
-
-    private func itemButton(item: FileScanner.DynamicDirectoryItem) -> some View {
-        Button(action: {
-            selectedFile = AgentFile(
-                tool: item.directory.tool,
-                path: item.path,
-                relativePath: relativePath(for: item),
-                layer: .user,
-                description: item.directory.itemDescription
-            )
+    private func itemButton(item: FileScanner.DynamicDirectoryItem, indented: Bool = false) -> some View {
+        HoverableRow(onTap: {
+            withAnimation(AnimationToken.viewSwitch) {
+                selectedFile = AgentFile(
+                    tool: item.directory.tool,
+                    path: item.path,
+                    relativePath: relativePath(for: item),
+                    layer: .user,
+                    description: item.directory.itemDescription
+                )
+            }
         }) {
             HStack(alignment: .top, spacing: 8) {
+                if indented {
+                    Spacer().frame(width: 18)
+                }
                 Image(systemName: item.directory.icon)
                     .foregroundStyle(.secondary)
-                    .frame(width: 16)
+                    .frame(width: 16, alignment: .center)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(item.displayTitle)
                         .font(.body)
@@ -131,17 +149,14 @@ struct UserLevelView: View {
                             Text(subtitle).lineLimit(1).truncationMode(.middle)
                             Text("·")
                         }
-                        Text(Self.relativeFormatter.localizedString(for: item.modifiedAt, relativeTo: Date()))
+                        RelativeTimeText(date: item.modifiedAt)
                     }
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .contentShape(Rectangle())
             .help("\(item.displayTitle)\n\(item.fileName)")
         }
-        .buttonStyle(.plain)
     }
 
     private func relativePath(for item: FileScanner.DynamicDirectoryItem) -> String {
