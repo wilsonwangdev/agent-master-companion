@@ -115,7 +115,8 @@ struct AgentFileTreeView: View {
             }
         } header: {
             Label(group.tool.rawValue, systemImage: group.tool.icon)
-                .font(.subheadline.weight(.semibold))
+                .font(.caption.weight(.medium))
+                .foregroundStyle(.secondary)
         }
     }
 

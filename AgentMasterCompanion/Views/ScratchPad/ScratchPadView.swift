@@ -151,8 +151,10 @@ struct NoteListView: View {
                 } header: {
                     HStack(spacing: 4) {
                         Text("Notes")
-                        Text("(\(vm.notes.count))").foregroundStyle(.secondary)
+                        Text("(\(vm.notes.count))").foregroundStyle(.secondary.opacity(0.7))
                     }
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.secondary)
                 }
             }
             .listStyle(.sidebar)
@@ -260,6 +262,8 @@ struct PromptComposerView: View {
                                 .transition(.opacity.combined(with: .scale(scale: 0.9)))
                             }
                         }
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(.secondary)
                         .animation(AnimationToken.fade, value: vm.composerSelection.isEmpty)
                     }
                 }
