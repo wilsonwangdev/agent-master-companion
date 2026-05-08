@@ -61,10 +61,14 @@ struct UserLevelView: View {
         } else {
             List {
                 if !results.isEmpty {
-                    Section("Global Config") {
+                    Section {
                         ForEach(results) { item in
                             userLevelRow(item: item)
                         }
+                    } header: {
+                        Text("Global Config")
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(.secondary)
                     }
                 }
 
@@ -83,8 +87,14 @@ struct UserLevelView: View {
 
         Section {
             if hasSubgroups {
-                let keys = grouped.keys.filter { !$0.isEmpty }.sorted()
-                ForEach(keys, id: \.self) { key in
+                let keys = grouped.keys.filter { !$0.isEmpty }
+                let sortedKeys = keys.sorted { lhs, rhs in
+                    let lTime = (grouped[lhs] ?? []).map(\.modifiedAt).max() ?? .distantPast
+                    let rTime = (grouped[rhs] ?? []).map(\.modifiedAt).max() ?? .distantPast
+                    if lTime != rTime { return lTime > rTime }
+                    return lhs < rhs
+                }
+                ForEach(sortedKeys, id: \.self) { key in
                     let compoundKey = "\(group.id)::\(key)"
                     ExpandableFolderRow(
                         dir: readableProjectName(key),
@@ -115,8 +125,10 @@ struct UserLevelView: View {
             HStack(spacing: 4) {
                 Text(group.directory.sectionTitle)
                 Text("(\(group.items.count))")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.secondary.opacity(0.7))
             }
+            .font(.caption.weight(.medium))
+            .foregroundStyle(.secondary)
         }
     }
 

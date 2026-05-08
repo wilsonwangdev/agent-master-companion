@@ -42,10 +42,26 @@ class FileScanner {
         }
 
         let grouped = Dictionary(grouping: found) { $0.tool }
-        return AgentTool.allCases.compactMap { tool in
-            guard let files = grouped[tool], !files.isEmpty else { return nil }
-            return AgentToolGroup(tool: tool, files: files.sorted { $0.relativePath < $1.relativePath })
+        let groups = grouped.map { tool, files -> AgentToolGroup in
+            AgentToolGroup(tool: tool, files: files.sorted(by: Self.byMTimeThenPath))
         }
+        return groups.sorted { lhs, rhs in
+            let lTime = lhs.files.compactMap(\.modifiedAt).max() ?? .distantPast
+            let rTime = rhs.files.compactMap(\.modifiedAt).max() ?? .distantPast
+            if lTime != rTime { return lTime > rTime }
+            return lhs.tool.rawValue < rhs.tool.rawValue
+        }
+    }
+
+    private static func byMTimeThenPath(_ lhs: AgentFile, _ rhs: AgentFile) -> Bool {
+        let lTime = lhs.modifiedAt ?? .distantPast
+        let rTime = rhs.modifiedAt ?? .distantPast
+        if lTime != rTime { return lTime > rTime }
+        return lhs.relativePath < rhs.relativePath
+    }
+
+    private static func modifiedAt(of url: URL) -> Date? {
+        (try? url.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
     }
 
     private static func modifiedAt(of url: URL) -> Date? {
