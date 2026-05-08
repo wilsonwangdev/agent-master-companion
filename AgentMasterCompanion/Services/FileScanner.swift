@@ -64,10 +64,6 @@ class FileScanner {
         (try? url.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
     }
 
-    private static func modifiedAt(of url: URL) -> Date? {
-        (try? url.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
-    }
-
     struct UserLevelResult: Identifiable {
         let tool: AgentTool
         let path: String
