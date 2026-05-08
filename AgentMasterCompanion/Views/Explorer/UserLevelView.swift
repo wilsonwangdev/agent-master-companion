@@ -26,7 +26,7 @@ struct UserLevelView: View {
                         RefreshButton(action: refresh)
                     }
                     .padding(.horizontal, 12)
-                    .padding(.vertical, 4)
+                    .padding(.vertical, 8)
 
                     Divider()
 
@@ -133,7 +133,8 @@ struct UserLevelView: View {
                         path: item.path,
                         relativePath: relativePath(for: item),
                         layer: .user,
-                        description: item.directory.itemDescription
+                        description: item.directory.itemDescription,
+                        modifiedAt: item.modifiedAt
                     )
                 }
             }

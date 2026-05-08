@@ -18,7 +18,8 @@ class FileScanner {
                     path: url,
                     relativePath: url.path.replacingOccurrences(of: root.path + "/", with: ""),
                     layer: pattern.layer,
-                    description: pattern.description
+                    description: pattern.description,
+                    modifiedAt: Self.modifiedAt(of: url)
                 ))
             }
         }
@@ -34,7 +35,8 @@ class FileScanner {
                     path: url,
                     relativePath: linked.displayPath(forProject: root.path, fileName: url.lastPathComponent),
                     layer: .runtime,
-                    description: linked.description
+                    description: linked.description,
+                    modifiedAt: Self.modifiedAt(of: url)
                 ))
             }
         }
@@ -44,6 +46,10 @@ class FileScanner {
             guard let files = grouped[tool], !files.isEmpty else { return nil }
             return AgentToolGroup(tool: tool, files: files.sorted { $0.relativePath < $1.relativePath })
         }
+    }
+
+    private static func modifiedAt(of url: URL) -> Date? {
+        (try? url.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
     }
 
     struct UserLevelResult: Identifiable {

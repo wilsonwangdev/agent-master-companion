@@ -89,7 +89,7 @@ struct FileViewerView: View {
             }
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 6)
+        .padding(.vertical, 8)
     }
 
     private var readingArea: some View {

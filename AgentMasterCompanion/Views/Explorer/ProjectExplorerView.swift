@@ -24,7 +24,7 @@ struct ProjectExplorerView: View {
                     .opacity(vm.isScanning ? 0.4 : 1)
             }
             .padding(.horizontal, 12)
-            .padding(.vertical, 4)
+            .padding(.vertical, 8)
 
             Divider()
 
@@ -120,24 +120,23 @@ struct AgentFileTreeView: View {
     }
 
     private func fileRow(file: AgentFile, showDescription: Bool, indented: Bool = false) -> some View {
-        Group {
-            if showDescription {
-                AgentListRow(
-                    icon: "doc.text",
-                    title: file.name,
-                    subtitle: file.description,
-                    tooltip: file.relativePath,
-                    indented: indented,
-                    onTap: { onSelect(file) }
-                )
-            } else {
-                AgentListRow(
-                    icon: "doc.text",
-                    title: file.name,
-                    tooltip: file.relativePath,
-                    indented: indented,
-                    onTap: { onSelect(file) }
-                )
+        AgentListRow(
+            icon: "doc.text",
+            title: file.name,
+            tooltip: file.relativePath,
+            indented: indented,
+            onTap: { onSelect(file) }
+        ) {
+            HStack(spacing: 4) {
+                if showDescription {
+                    Text(file.description).lineLimit(1).truncationMode(.tail)
+                    if file.modifiedAt != nil {
+                        Text("·")
+                    }
+                }
+                if let date = file.modifiedAt {
+                    RelativeTimeText(date: date)
+                }
             }
         }
     }
