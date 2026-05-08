@@ -94,13 +94,14 @@ struct LinkButton: View {
 
 struct HoverableRow<Content: View>: View {
     let onTap: () -> Void
+    var minHeight: CGFloat = 32
     @ViewBuilder let content: () -> Content
     @State private var isHovered = false
 
     var body: some View {
         Button(action: onTap) {
             content()
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxWidth: .infinity, minHeight: minHeight, alignment: .leading)
                 .padding(.horizontal, 4)
                 .padding(.vertical, 2)
                 .background(
@@ -113,6 +114,61 @@ struct HoverableRow<Content: View>: View {
         .onHover { hovered in
             withAnimation(AnimationToken.fade) { isHovered = hovered }
         }
+    }
+}
+
+struct AgentListRow<Subtitle: View, Trailing: View>: View {
+    let icon: String
+    let title: String
+    var tooltip: String? = nil
+    var indented: Bool = false
+    var onTap: () -> Void
+    @ViewBuilder var subtitle: () -> Subtitle
+    @ViewBuilder var trailing: () -> Trailing
+
+    var body: some View {
+        HoverableRow(onTap: onTap) {
+            HStack(alignment: .center, spacing: 8) {
+                if indented {
+                    Spacer().frame(width: 18)
+                }
+                Image(systemName: icon)
+                    .foregroundStyle(.secondary)
+                    .frame(width: 16, alignment: .center)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(title)
+                        .font(.body)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                    subtitle()
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                }
+                Spacer(minLength: 0)
+                trailing()
+            }
+            .help(tooltip ?? title)
+        }
+    }
+}
+
+extension AgentListRow where Subtitle == EmptyView, Trailing == EmptyView {
+    init(icon: String, title: String, tooltip: String? = nil, indented: Bool = false, onTap: @escaping () -> Void) {
+        self.init(icon: icon, title: title, tooltip: tooltip, indented: indented, onTap: onTap, subtitle: { EmptyView() }, trailing: { EmptyView() })
+    }
+}
+
+extension AgentListRow where Trailing == EmptyView {
+    init(icon: String, title: String, tooltip: String? = nil, indented: Bool = false, onTap: @escaping () -> Void, @ViewBuilder subtitle: @escaping () -> Subtitle) {
+        self.init(icon: icon, title: title, tooltip: tooltip, indented: indented, onTap: onTap, subtitle: subtitle, trailing: { EmptyView() })
+    }
+}
+
+extension AgentListRow where Subtitle == Text, Trailing == EmptyView {
+    init(icon: String, title: String, subtitle: String, tooltip: String? = nil, indented: Bool = false, onTap: @escaping () -> Void) {
+        self.init(icon: icon, title: title, tooltip: tooltip, indented: indented, onTap: onTap, subtitle: { Text(subtitle) }, trailing: { EmptyView() })
     }
 }
 
@@ -166,7 +222,7 @@ struct ExpandableFolderRow: View {
                 }
                 Spacer(minLength: 0)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity, minHeight: 32, alignment: .leading)
             .padding(.horizontal, 4)
             .padding(.vertical, 2)
             .background(

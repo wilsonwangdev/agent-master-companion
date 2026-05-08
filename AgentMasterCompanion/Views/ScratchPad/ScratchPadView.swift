@@ -160,23 +160,14 @@ struct NoteListView: View {
     }
 
     private func noteRow(note: Note) -> some View {
-        HoverableRow(onTap: {
-            withAnimation(AnimationToken.viewSwitch) { vm.selectedNote = note }
-        }) {
-            HStack(alignment: .top, spacing: 8) {
-                Image(systemName: "note.text")
-                    .foregroundStyle(.secondary)
-                    .frame(width: 16, alignment: .center)
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(note.title)
-                        .font(.body)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                    RelativeTimeText(date: note.updatedAt)
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                }
+        AgentListRow(
+            icon: "note.text",
+            title: note.title,
+            onTap: {
+                withAnimation(AnimationToken.viewSwitch) { vm.selectedNote = note }
             }
+        ) {
+            RelativeTimeText(date: note.updatedAt)
         }
         .contextMenu {
             Button("Delete", role: .destructive) { vm.deleteNote(note) }

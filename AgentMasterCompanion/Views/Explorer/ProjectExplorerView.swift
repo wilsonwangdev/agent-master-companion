@@ -11,15 +11,11 @@ struct ProjectExplorerView: View {
                     withAnimation(AnimationToken.viewSwitch) { vm.closeProject() }
                 }
 
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(project.name).font(.headline).lineLimit(1)
-                    Text(project.path)
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                        .help(project.path)
-                }
+                Text(project.name)
+                    .font(.headline)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .help(project.path)
 
                 Spacer()
 
@@ -124,26 +120,24 @@ struct AgentFileTreeView: View {
     }
 
     private func fileRow(file: AgentFile, showDescription: Bool, indented: Bool = false) -> some View {
-        HoverableRow(onTap: { onSelect(file) }) {
-            HStack(spacing: 8) {
-                if indented {
-                    Spacer().frame(width: 18)
-                }
-                Image(systemName: "doc.text")
-                    .foregroundStyle(.secondary)
-                    .frame(width: 16, alignment: .center)
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(file.name)
-                        .font(.body)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                        .help(file.relativePath)
-                    if showDescription {
-                        Text(file.description)
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                    }
-                }
+        Group {
+            if showDescription {
+                AgentListRow(
+                    icon: "doc.text",
+                    title: file.name,
+                    subtitle: file.description,
+                    tooltip: file.relativePath,
+                    indented: indented,
+                    onTap: { onSelect(file) }
+                )
+            } else {
+                AgentListRow(
+                    icon: "doc.text",
+                    title: file.name,
+                    tooltip: file.relativePath,
+                    indented: indented,
+                    onTap: { onSelect(file) }
+                )
             }
         }
     }
