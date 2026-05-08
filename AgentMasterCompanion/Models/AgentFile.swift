@@ -7,6 +7,7 @@ struct AgentFile: Identifiable, Hashable {
     let relativePath: String
     let layer: FileLayer
     let description: String
+    let modifiedAt: Date?
 
     var name: String { path.lastPathComponent }
     var isDirectory: Bool {

@@ -120,7 +120,7 @@ struct ScratchPadView: View {
             }
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 4)
+        .padding(.vertical, 8)
     }
 }
 
@@ -203,7 +203,7 @@ struct NoteEditorView: View {
                 }
             }
             .padding(.horizontal, 12)
-            .padding(.vertical, 4)
+            .padding(.vertical, 8)
 
             Divider()
 
