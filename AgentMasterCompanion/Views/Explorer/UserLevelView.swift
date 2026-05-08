@@ -121,41 +121,30 @@ struct UserLevelView: View {
     }
 
     private func itemButton(item: FileScanner.DynamicDirectoryItem, indented: Bool = false) -> some View {
-        HoverableRow(onTap: {
-            withAnimation(AnimationToken.viewSwitch) {
-                selectedFile = AgentFile(
-                    tool: item.directory.tool,
-                    path: item.path,
-                    relativePath: relativePath(for: item),
-                    layer: .user,
-                    description: item.directory.itemDescription
-                )
-            }
-        }) {
-            HStack(alignment: .top, spacing: 8) {
-                if indented {
-                    Spacer().frame(width: 18)
-                }
-                Image(systemName: item.directory.icon)
-                    .foregroundStyle(.secondary)
-                    .frame(width: 16, alignment: .center)
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(item.displayTitle)
-                        .font(.body)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                    HStack(spacing: 4) {
-                        if let subtitle = item.subtitle {
-                            Text(subtitle).lineLimit(1).truncationMode(.middle)
-                            Text("·")
-                        }
-                        RelativeTimeText(date: item.modifiedAt)
-                    }
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
+        AgentListRow(
+            icon: item.directory.icon,
+            title: item.displayTitle,
+            tooltip: "\(item.displayTitle)\n\(item.fileName)",
+            indented: indented,
+            onTap: {
+                withAnimation(AnimationToken.viewSwitch) {
+                    selectedFile = AgentFile(
+                        tool: item.directory.tool,
+                        path: item.path,
+                        relativePath: relativePath(for: item),
+                        layer: .user,
+                        description: item.directory.itemDescription
+                    )
                 }
             }
-            .help("\(item.displayTitle)\n\(item.fileName)")
+        ) {
+            HStack(spacing: 4) {
+                if let subtitle = item.subtitle {
+                    Text(subtitle).lineLimit(1).truncationMode(.middle)
+                    Text("·")
+                }
+                RelativeTimeText(date: item.modifiedAt)
+            }
         }
     }
 
