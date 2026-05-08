@@ -26,7 +26,11 @@ rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
 
 # Archive (universal binary, no code signing)
+# Tee full log to a file so CI failures can be inspected; print only
+# progress lines + errors to stdout so the console stays readable.
 echo "Archiving..."
+ARCHIVE_LOG="$BUILD_DIR/archive.log"
+set +e
 xcodebuild archive \
   -project "$PROJECT" \
   -scheme "$SCHEME" \
@@ -37,7 +41,15 @@ xcodebuild archive \
   CODE_SIGNING_ALLOWED=YES \
   ARCHS="arm64 x86_64" \
   ONLY_ACTIVE_ARCH=NO \
-  | tail -5
+  2>&1 | tee "$ARCHIVE_LOG" | grep -E "^(=== |\\*\\* |[^ ].*error:|[^ ].*warning:)" || true
+ARCHIVE_STATUS=${PIPESTATUS[0]}
+set -e
+if [ "$ARCHIVE_STATUS" -ne 0 ]; then
+  echo ""
+  echo "Archive failed. Tail of full log:"
+  tail -40 "$ARCHIVE_LOG"
+  exit "$ARCHIVE_STATUS"
+fi
 
 # Export
 echo "Exporting..."
