@@ -49,11 +49,17 @@ xcodebuild -project AgentMasterCompanion.xcodeproj -scheme AgentMasterCompanion 
 # 1. Ensure all release PRs are merged to main
 git checkout main && git pull
 
-# 2. Create release tag on main
-git tag v0.2.0
-git push origin v0.2.0
+# 2. Run a Release archive LOCALLY before tagging. Debug build != Release archive —
+#    whole-module optimization and stricter diagnostics catch things `xcodebuild build`
+#    misses (redeclarations, missing `@available` guards, linker errors).
+./scripts/build_dmg.sh
+#    If this fails, fix the problem in a PR first. Never push a tag on a red build.
 
-# 3. GitHub Actions will automatically:
+# 3. Create release tag on main
+git tag v0.3.0
+git push origin v0.3.0
+
+# 4. GitHub Actions will automatically:
 #    - build universal app (arm64 + x86_64)
 #    - inject version from git tag into built Info.plist
 #    - package DMG
@@ -66,6 +72,7 @@ Notes:
 - Real version is injected at build time from the latest git tag
 - Do not manually bump `CFBundleShortVersionString` for releases
 - Verify every release by downloading the DMG and checking the app's About panel shows the tag version
+- PRs trigger `.github/workflows/ci.yml` which runs a Release archive. If it goes red, merging is blocked — don't bypass. The same failure would otherwise show up only at tag push time.
 
 ## Site Development
 
