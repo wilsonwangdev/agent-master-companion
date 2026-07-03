@@ -92,9 +92,9 @@ Vercel Analytics script is embedded in index.html. It is a no-op on non-Vercel h
 ## Safety — Product Boundary
 
 This app operates on a strict whitelist of non-sensitive agent files only:
-- Instruction files: `AGENTS.md`, `AGENTS.md`, `codex.md`, `.cursorrules`, `.windsurfrules`, `.clinerules`, `.roomodes`, `.augment-guidelines`, `.devin/rules.md`
+- Instruction files: `CLAUDE.md`, `AGENTS.md`, `codex.md`, `.cursorrules`, `.windsurfrules`, `.clinerules`, `.roomodes`, `.augment-guidelines`, `.devin/rules.md`
 - Instruction directories: `.cursor/rules/`, `.clinerules/`, `.amazonq/rules/`, `.github/instructions/`
-- Context files: `.Codex/memory/*.md`, `.Codex/plans/*.md`
+- Context files: `.claude/memory/*.md`, `.claude/plans/*.md`
 - Ignore rules: `.aiderignore`
 
 Never read, cache, or display configuration/credential files:
